@@ -235,6 +235,31 @@ top_10 = sorted_totals[:10]
 - `csv.DictReader` reads a CSV straight into dicts. There's no need to convert to JSON first.
 - Later: `collections.Counter` can replace this pattern, once the plain version feels natural.
 
+### Build a lookup dict instead of searching inside a loop
+
+```python
+# ❌ slow: for each of 150,000 balls, search through all 636 matches
+for ball in deliveries:
+    match = next((m for m in matches if m["id"] == ball["match_id"]), None)
+
+# ✅ fast: build {match_id: season} once, then each lookup is instant
+seasons = {}
+for match in matches:
+    seasons[match["id"]] = match["season"]
+
+for ball in deliveries:
+    season = seasons[ball["match_id"]]
+```
+
+Looking up a key in a dict takes the same short time however big the dict is, like a JS object or `Map`. Searching a list checks every item one by one.
+In this project, that change took two charts from about 1.5 seconds to 0.1 seconds each.
+
+### Check the data for special cases
+
+- Empty values: matches with no result have `winner == ""`. Skip them, or they get counted as a team with no name.
+- Tiny samples: a bowler with only 7 balls can top an "economy rate" list by luck. Set a minimum (e.g. 10 overs).
+- Learn the domain rules: byes/leg-byes aren't the bowler's fault, and wides/no-balls aren't legal balls.
+
 ### DRY (Don't Repeat Yourself)
 
 If two files share 40 identical lines (e.g. chart styling), extract a helper (`src/plotting.py`).

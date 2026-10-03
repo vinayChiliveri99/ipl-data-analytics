@@ -1,53 +1,37 @@
-"""Plot a stacked bar chart of number of games played by team by season."""
+"""Number of matches played by each team in each season, as a stacked bar chart."""
 
-import matplotlib.pyplot as plt
+from src.plotting import plot_stacked_bar
+from src.teams import TEAM_GROUPS, team_group
 
-def plot_matches_played_by_team_by_season(matches: list[dict[str, str]]) -> None:
-    """Plot a stacked bar chart of number of games played by team by season."""
-    # Count matches played by team by season
+
+def matches_played_by_season(
+    matches: list[dict[str, str]],
+) -> dict[str, dict[str, int]]:
+    """Count matches per season for each team group.
+
+    Every match counts once for each of its two teams.
+    """
     counts = {}
     for match in matches:
         season = match["season"]
-        team1 = match["team1"]
-        team2 = match["team2"]
         if season not in counts:
             counts[season] = {}
-        if team1 not in counts[season]:
-            counts[season][team1] = 0
-        if team2 not in counts[season]:
-            counts[season][team2] = 0
-        counts[season][team1] += 1
-        counts[season][team2] += 1
 
-    # Convert to a list of (season, team, count) tuples
-    data = []
-    for season, teams in counts.items():
-        for team, count in teams.items():
-            data.append((season, team, count))
+        for team in (match["team1"], match["team2"]):
+            group = team_group(team)
+            if group not in counts[season]:
+                counts[season][group] = 0
+            counts[season][group] += 1
+    return counts
 
-    # Sort by season and then by team
-    data.sort(key=lambda x: (x[0], x[1]))
 
-    # Prepare data for plotting
-    seasons = sorted(set(season for season, _, _ in data))
-    teams = sorted(set(team for _, team, _ in data))
-    values = {team: [0] * len(seasons) for team in teams}
-    for season, team, count in data:
-        season_index = seasons.index(season)
-        values[team][season_index] = count
-
-    # Plot the stacked bar chart
-
-    _, ax = plt.subplots()
-    bottom = [0] * len(seasons)
-    for team in teams:
-        ax.bar(seasons, values[team], bottom=bottom, label=team)
-        bottom = [bottom[i] + values[team][i] for i in range(len(seasons))]
-
-    ax.set_xlabel("Season")
-    ax.set_ylabel("Number of Matches Played")
-    ax.set_title("Number of Matches Played by Team by Season")
-    ax.legend()
-    plt.xticks(rotation=45)
-    plt.tight_layout()
-    plt.show()
+def plot_matches_played_by_team_by_season(matches: list[dict[str, str]]) -> None:
+    """Plot a stacked bar chart of the number of matches played by team by season."""
+    plot_stacked_bar(
+        matches_played_by_season(matches),
+        groups=TEAM_GROUPS,
+        title="Matches Played by Each Team per Season",
+        subtitle="Each match counts once for each of its two teams",
+        xlabel="Season",
+        ylabel="Matches played",
+    )

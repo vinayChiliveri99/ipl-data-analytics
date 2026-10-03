@@ -1,49 +1,51 @@
-""" Number of matches won per team per year in IPL.
-Plot a stacked bar chart. """
+"""Number of matches won by each team in each season, as a stacked bar chart."""
 
-import matplotlib.pyplot as plt
+from src.plotting import plot_stacked_bar
+from src.teams import TEAM_GROUPS, team_group
 
-def plot_matches_won_per_team_per_year(matches: list[dict[str, str]]) -> None:
-    """Plot a stacked bar chart of number of matches won per team per year."""
-    # Count matches won by team by year
+
+def matches_won_by_season(
+    matches: list[dict[str, str]],
+) -> dict[str, dict[str, int]]:
+    """Count wins per season for each team group.
+
+    Matches with no result have an empty winner and are skipped.
+    """
     counts = {}
     for match in matches:
-        season = match["season"]
         winner = match["winner"]
+        if winner == "":
+            continue
+
+        season = match["season"]
         if season not in counts:
             counts[season] = {}
-        if winner not in counts[season]:
-            counts[season][winner] = 0
-        counts[season][winner] += 1
 
-    # Convert to a list of (season, team, count) tuples
-    data = []
-    for season, teams in counts.items():
-        for team, count in teams.items():
-            data.append((season, team, count))
+        group = team_group(winner)
+        if group not in counts[season]:
+            counts[season][group] = 0
+        counts[season][group] += 1
+    return counts
 
-    # Sort by season and then by team
-    data.sort(key=lambda x: (x[0], x[1]))
 
-    # Prepare data for plotting
-    seasons = sorted(set(season for season, _, _ in data))
-    teams = sorted(set(team for _, team, _ in data))
-    values = {team: [0] * len(seasons) for team in teams}
-    for season, team, count in data:
-        season_index = seasons.index(season)
-        values[team][season_index] = count
+def count_no_result_matches(matches: list[dict[str, str]]) -> int:
+    """Count matches that ended without a winner."""
+    count = 0
+    for match in matches:
+        if match["winner"] == "":
+            count += 1
+    return count
 
-    # Plot the stacked bar chart
-    _, ax = plt.subplots()
-    bottom = [0] * len(seasons)
-    for team in teams:
-        ax.bar(seasons, values[team], bottom=bottom, label=team)
-        bottom = [bottom[i] + values[team][i] for i in range(len(seasons))]
 
-    ax.set_xlabel("Season")
-    ax.set_ylabel("Number of Matches Won")
-    ax.set_title("Number of Matches Won Per Team Per Year in IPL")
-    ax.legend()
-    plt.xticks(rotation=45)
-    plt.tight_layout()
-    plt.show()
+def plot_matches_won_per_team_per_year(matches: list[dict[str, str]]) -> None:
+    """Plot a stacked bar chart of the number of matches won per team per year."""
+    no_results = count_no_result_matches(matches)
+
+    plot_stacked_bar(
+        matches_won_by_season(matches),
+        groups=TEAM_GROUPS,
+        title="Matches Won by Each Team per Season",
+        subtitle=f"Excludes {no_results} matches that ended with no result",
+        xlabel="Season",
+        ylabel="Matches won",
+    )

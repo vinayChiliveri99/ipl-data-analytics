@@ -1,30 +1,28 @@
-""" # Number of matches played per year for all the years in IPL.
-# Plot a bar chart. """
+"""Number of matches played per year for all the years in the IPL."""
 
-import matplotlib.pyplot as plt
+from src.plotting import plot_column_chart
 
-def plot_matches_played_per_year(matches: list[dict[str, str]]) -> None:
-    """Plot a bar chart of number of matches played per year."""
-    # Count matches played per year
+
+def matches_per_season(matches: list[dict[str, str]]) -> dict[str, int]:
+    """Count how many matches were played in each season."""
     counts = {}
     for match in matches:
         season = match["season"]
         if season not in counts:
             counts[season] = 0
         counts[season] += 1
+    return counts
 
-    # Sort by season
+
+def plot_matches_played_per_year(matches: list[dict[str, str]]) -> None:
+    """Plot a bar chart of the number of matches played per year."""
+    counts = matches_per_season(matches)
     sorted_counts = sorted(counts.items(), key=lambda item: item[0])
 
-    # Prepare data for plotting
-    seasons = [item[0] for item in sorted_counts]
-    values = [item[1] for item in sorted_counts]
-
-    # Plot the bar chart
-    plt.bar(seasons, values)
-    plt.xlabel("Season")
-    plt.ylabel("Number of Matches Played")
-    plt.title("Number of Matches Played Per Year in IPL")
-    plt.xticks(rotation=45)
-    plt.tight_layout()
-    plt.show()
+    plot_column_chart(
+        sorted_counts,
+        title="Matches Played per IPL Season",
+        subtitle="Number of matches in each season, 2008–2017",
+        xlabel="Season",
+        ylabel="Matches played",
+    )

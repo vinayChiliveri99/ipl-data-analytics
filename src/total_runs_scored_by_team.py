@@ -25,6 +25,7 @@ def plot_total_runs_by_team(deliveries: list[dict[str, str]]) -> None:
     plot_horizontal_bar(
         sorted_teams,
         title="Total Runs Scored by IPL Teams",
-        xlabel="Total Runs",
+        subtitle="All seasons, 2008–2017, including extras",
+        xlabel="Total runs",
         ylabel="Team",
     )

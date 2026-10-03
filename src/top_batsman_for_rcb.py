@@ -29,11 +29,13 @@ def top_batsmen(
     sorted_batsmen = sorted(totals.items(), key=lambda item: item[1], reverse=True)
     return sorted_batsmen[:top_n]
 
+
 def plot_top_rcb_batsmen(deliveries: list[dict[str, str]], top_n: int = 10) -> None:
     """Plot the top `top_n` RCB batsmen by total runs scored."""
     plot_horizontal_bar(
         top_batsmen(deliveries, RCB, top_n),
-        title=f"Top {top_n} Batsmen for {RCB} by Total Runs",
-        xlabel="Total Runs",
+        title=f"Top {top_n} Batsmen for {RCB}",
+        subtitle="Runs scored for RCB across all seasons, 2008–2017",
+        xlabel="Total runs",
         ylabel="Batsman",
     )
